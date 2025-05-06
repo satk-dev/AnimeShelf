@@ -1,0 +1,11 @@
+-- CreateTable
+CREATE TABLE "AnimeShelf" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "userId" INTEGER NOT NULL,
+    "malId" INTEGER NOT NULL,
+    "title" TEXT NOT NULL,
+    "imageUrl" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'Watching',
+    "addedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "AnimeShelf_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+);

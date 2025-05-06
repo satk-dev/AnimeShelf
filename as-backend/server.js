@@ -80,6 +80,50 @@ app.post("/api/register", async (req, res) => {
 
 });
 
+app.post("/api/shelf", async (req, res) => {
+  const { token } = req.headers;
+  const { malId, title, imageUrl } = req.body;
+
+  if (!token) return res.status(401).json({ error: "No token provided" });
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "dev-secret");
+
+    const shelfItem = await prisma.animeShelf.create({
+      data: {
+        userId: decoded.userId,
+        malId,
+        title,
+        imageUrl,
+      },
+    });
+    res.status(201).json({ message: "Added to shelf!", shelfItem });
+  } catch (err) {
+    console.error(err);
+    res.status(401).json({ error: "Invalid token or failed to save" });
+  }
+});
+
+app.get("/api/shelf", async (req, res) => {
+  const { token } = req.headers;
+
+  if (!token) return res.status(401).json({ error: "No token provided" });
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "dev-secret");
+
+    const shelf = await prisma.animeShelf.findMany({
+      where: { userId: decoded.userId },
+      orderBy: { addedAt: "desc" },
+    });
+
+    res.json ({ shelf });
+  } catch (err) {
+    console.error(err);
+    res.status(401).json({ error: "Invalid token" });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
