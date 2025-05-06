@@ -1,0 +1,35 @@
+# === Node.js ===
+**/node_modules/
+**/dist/
+**/build/
+
+# === Environment Variables ===
+**/.env
+
+# === Prisma (SQLite) ===
+**/dev.db
+**/dev.db-journal
+
+# === Logs ===
+**/npm-debug.log*
+**/yarn-debug.log*
+**/pnpm-debug.log*
+
+# === Remix/Vite ===
+**/.cache/
+**/.vite/
+**/.turbo/
+**/.netlify/
+**/.vercel/
+
+# === OS Files ===
+.DS_Store
+Thumbs.db
+
+# === IDE/Editor ===
+.vscode/
+.idea/
+
+# === Docker (optional) ===
+**/Dockerfile
+**/docker-compose.override.yml
