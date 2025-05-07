@@ -96,8 +96,6 @@ export default function ShelfPage() {
             <main style={{ padding: "2rem", textAlign: "center" }}>
                 <h1>My Shelf</h1>
                 <p>Welcome, {user.email}!</p>
-                <a href="/profile">Profile</a>
-
                 <form onSubmit={handleSearch} style={{ marginTop: "2rem" }}>
                     <input
                         type="text"
@@ -269,22 +267,6 @@ export default function ShelfPage() {
                         </div>
                     )}
                 </section>
-
-                <button
-                    onClick={handleLogout}
-                    style={{
-                        marginTop: "3rem",
-                        padding: "0.5rem 1rem",
-                        backgroundColor: "#F87171",
-                        color: "#fff",
-                        border: "none",
-                        borderRadius: "6px",
-                        cursor: "pointer",
-                        fontWeight: "bold",
-                    }}
-                >
-                    Log Out
-                </button>
             </main>
         </>
     );

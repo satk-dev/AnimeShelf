@@ -1,35 +1,29 @@
-import { useLoaderData } from "@remix-run/react";
-import { json, redirect } from "@remix-run/node";
 import { useEffect, useState } from "react";
-import axios from "axios";
 import NavBar from "../components/NavBar";
+import axios from "axios";
 
 export const meta = () => {
     return [{ title: "My Profile | AnimeShelf" }];
 };
 
-export async function loader({ request }) {
-    const cookie = request.headers.get("Cookie");
-    return null;
-}
-
 export default function ProfilePage() {
-    const [profileUrl, setProfileUrl] = useState(null);
+    const [tokenValid, setTokenValid] = useState(false);
+    const [profileUrl, setProfileUrl] = useState("");
     const [email, setEmail] = useState("");
 
     useEffect(() => {
         const token = localStorage.getItem("token");
-        if (!token) {
-            window.location.href = "/login";
-            return;
-        }
+        if (!token) return;
 
         axios.get("http://localhost:4000/api/users/me", { headers: { token } })
             .then((res) => {
-                setProfileUrl(res.data.proilePicture);
+                setProfileUrl(res.data.profilePicture);
                 setEmail(res.data.email);
+                setTokenValid(true);
             })
-            .catch(() => (window.location.href = "/login"));
+            .catch((err) => {
+                console.error("Token invalid or expired:", err);
+            });
     }, []);
 
     const handleUpload = async (e) => {
@@ -50,25 +44,37 @@ export default function ProfilePage() {
         }
     };
 
+    if (!tokenValid) {
+        return (
+            <>
+                <NavBar />
+                <main style={{ padding: "2rem", textAlign: "center" }}>
+                    <p>Loading profile...</p>
+                </main>
+            </>
+        );
+    }
+
     return (
-        <main style={{ padding: "2rem", textAlign: "center" }}>
-            <h1>Profile</h1>
-            <p>{email}</p>
-
-            {profileUrl && (
-                <img
-                    src={`http://localhost:4000${profileUrl}`}
-                    alt="Profile"
-                    style={{ width: "100px", borderRadius: "50%", marginBottom: "1rem" }}
-                />
-            )}
-
-            <form onSubmit={handleUpload} encType="multipart/form-data">
-                <input type="file" name="profile" accept="image/*" required />
-                <button type="submit" style={{ marginLeft: "1rem" }}>
-                    Upload New Picture
-                </button>
-            </form>
-        </main>
+        <>
+            <NavBar />
+            <main style={{ padding: "2rem", textAlign: "center" }}>
+                <h1>Profile</h1>
+                <p>{email}</p>
+                {profileUrl && (
+                    <img
+                        src={`http://localhost:4000${profileUrl}`}
+                        alt="Profile"
+                        style={{ width: "100px", borderRadius: "50%", marginBottom: "1rem" }}
+                    />
+                )}
+                <form onSubmit={handleUpload} encType="multipart/form-data">
+                    <input type="file" name="profile" accept="image/*" required />
+                    <button type="submit" style={{ marginLeft: "1rem" }}>
+                        Upload New Picture
+                    </button>
+                </form>
+            </main>
+        </>
     );
 }
