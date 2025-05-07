@@ -21,6 +21,8 @@ export default function ShelfPage() {
     const [results, setResults] = useState([]);
     const [loading, setLoading] = useState(false);
     const [shelf, setShelf] = useState([]);
+    const [profileUrl, setProfileUrl] = useState(null);
+
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -39,6 +41,13 @@ export default function ShelfPage() {
             })
                 .then((res) => setShelf(res.data.shelf))
                 .catch((err) => console.error("Failed to fetch shelf:", err));
+
+            axios.get("http://localhost:4000/api/users/me", {
+                headers: { token },
+            })
+                .then((res) => setProfileUrl(res.data.profilePicture))
+                .catch((err) => console.error("Failed to load profile pic", err));
+
 
         } catch (err) {
             console.error("Invalid token", err);
@@ -73,10 +82,18 @@ export default function ShelfPage() {
 
     if (!user) return <p>Loading your shelf...</p>;
 
+    const groupedShelf = {
+        Watching: shelf.filter((anime) => anime.status === "Watching"),
+        Completed: shelf.filter((anime) => anime.status === "Completed"),
+        Dropped: shelf.filter((anime) => anime.status === "Dropped"),
+    };
+
+
     return (
         <main style={{ padding: "2rem", textAlign: "center" }}>
             <h1>My Shelf</h1>
             <p>Welcome, {user.email}!</p>
+            <a href="/profile">Profile</a>
 
             <form onSubmit={handleSearch} style={{ marginTop: "2rem" }}>
                 <input
@@ -161,17 +178,91 @@ export default function ShelfPage() {
                             marginTop: "1rem",
                         }}
                     >
-                        {shelf.map((anime) => (
-                            <div key={anime.id} style={{ width: "150px", textAlign: "center" }}>
-                                <img
-                                    src={anime.imageUrl}
-                                    alt={anime.title}
-                                    style={{ width: "100%", borderRadius: "8px" }}
-                                />
-                                <p>{anime.title}</p>
-                                <p style={{ fontSize: "0.8rem", color: "#555" }}>{anime.status}</p>
-                            </div>
+                        {Object.entries(groupedShelf).map(([status, items]) => (
+                            <section key={status} style={{ marginTop: "2rem" }}>
+                                <h2>{status}</h2>
+
+                                {items.length === 0 ? (
+                                    <p style={{ fontSize: "0.9rem", color: "#888" }}>No anime in this category.</p>
+                                ) : (
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            flexWrap: "wrap",
+                                            justifyContent: "center",
+                                            gap: "1rem",
+                                            marginTop: "1rem",
+                                        }}
+                                    >
+                                        {items.map((anime) => (
+                                            <div key={anime.id} style={{ width: "150px", textAlign: "center" }}>
+                                                <img
+                                                    src={anime.imageUrl}
+                                                    alt={anime.title}
+                                                    style={{ width: "100%", borderRadius: "8px" }}
+                                                />
+                                                <p>{anime.title}</p>
+
+                                                <select
+                                                    value={anime.status}
+                                                    onChange={async (e) => {
+                                                        const newStatus = e.target.value;
+                                                        const token = localStorage.getItem("token");
+                                                        try {
+                                                            await axios.patch(`http://localhost:4000/api/shelf/${anime.id}`, {
+                                                                status: newStatus,
+                                                            }, {
+                                                                headers: { token },
+                                                            });
+                                                            setShelf((prev) =>
+                                                                prev.map((item) =>
+                                                                    item.id === anime.id ? { ...item, status: newStatus } : item
+                                                                )
+                                                            );
+                                                        } catch (err) {
+                                                            console.error("Failed to update status:", err);
+                                                        }
+                                                    }}
+                                                    style={{ marginTop: "0.5rem", padding: "0.3rem", borderRadius: "4px" }}
+                                                >
+                                                    <option value="Watching">Watching</option>
+                                                    <option value="Completed">Completed</option>
+                                                    <option value="Dropped">Dropped</option>
+                                                </select>
+
+                                                <button
+                                                    onClick={async () => {
+                                                        const token = localStorage.getItem("token");
+                                                        try {
+                                                            await axios.delete(`http://localhost:4000/api/shelf/${anime.id}`, {
+                                                                headers: { token },
+                                                            });
+                                                            setShelf((prev) => prev.filter((item) => item.id !== anime.id));
+                                                        } catch (err) {
+                                                            console.error("Failed to delete item:", err);
+                                                        }
+                                                    }}
+                                                    style={{
+                                                        marginTop: "0.5rem",
+                                                        padding: "0.3rem 0.6rem",
+                                                        fontSize: "0.8rem",
+                                                        borderRadius: "6px",
+                                                        backgroundColor: "#F87171",
+                                                        color: "white",
+                                                        border: "none",
+                                                        cursor: "pointer",
+                                                    }}
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </section>
                         ))}
+
+
                     </div>
                 )}
             </section>
