@@ -2,6 +2,7 @@ import { useLoaderData } from "@remix-run/react";
 import { json, redirect } from "@remix-run/node";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import NavBar from "../components/NavBar";
 
 export const meta = () => {
     return [{ title: "My Profile | AnimeShelf" }];
